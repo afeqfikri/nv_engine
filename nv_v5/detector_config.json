@@ -1,0 +1,23 @@
+{
+  "ollama_url": "http://localhost:11434",
+  "default_model": "llama3",
+  "scan_settings": {
+    "max_file_size_mb": 5,
+    "scan_extensions": [
+      ".py",
+      ".js",
+      ".php",
+      ".pl",
+      ".rb",
+      ".sh",
+      ".bat",
+      ".ps1"
+    ],
+    "ai_analysis_threshold": 0.3
+  },
+  "detection_settings": {
+    "yara_enabled": true,
+    "ai_analysis_enabled": true,
+    "real_time_monitoring": true
+  }
+}

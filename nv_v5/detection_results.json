@@ -1,0 +1,90 @@
+{
+  "comment_density": {
+    "ratio": 0.183,
+    "comment_lines": 82,
+    "total_lines": 449,
+    "suspicious": false,
+    "threshold": 0.25
+  },
+  "function_patterns": {
+    "matches": {
+      "verb_noun_noun": 19,
+      "collect_pattern": 1,
+      "generate_pattern": 4,
+      "simulate_pattern": 4,
+      "handle_pattern": 0
+    },
+    "total_matches": 28,
+    "suspicious": true,
+    "threshold": 3
+  },
+  "import_analysis": {
+    "total_imports": 12,
+    "ai_imports_found": [
+      "os",
+      "sys",
+      "time",
+      "json",
+      "base64",
+      "hashlib",
+      "random",
+      "string",
+      "urllib",
+      "datetime"
+    ],
+    "ai_import_count": 10,
+    "suspicious": true,
+    "threshold": 5
+  },
+  "entropy_analysis": {
+    "entropy": 4.489,
+    "suspicious": true,
+    "ai_range": [
+      4.0,
+      5.5
+    ]
+  },
+  "class_patterns": {
+    "found_classes": [
+      "class FileSystemManager",
+      "class PersistenceManager",
+      "class SystemInformationGatherer",
+      "class NetworkCommunicator"
+    ],
+    "count": 4,
+    "suspicious": true,
+    "threshold": 1
+  },
+  "string_patterns": {
+    "found_strings": [
+      {
+        "string": "Method to gather",
+        "count": 1
+      },
+      {
+        "string": "This demonstrates",
+        "count": 7
+      },
+      {
+        "string": "[INFO]",
+        "count": 28
+      },
+      {
+        "string": "[ERROR]",
+        "count": 12
+      },
+      {
+        "string": "[STAGE",
+        "count": 14
+      }
+    ],
+    "total_matches": 62,
+    "suspicious": true,
+    "threshold": 5
+  },
+  "overall_score": {
+    "score": 0.8,
+    "percentage": 80.0,
+    "classification": "\ud83d\udd34 HIGHLY SUSPICIOUS (AI-Generated)"
+  }
+}
