@@ -34,6 +34,9 @@ class _AntivirusHomePageState extends State<AntivirusHomePage> {
   HistoryDatabase history = HistoryDatabase();
 
   Future<void> _startScan() async {
+    setState(() {
+      _isScanning = true;
+    });
     List<MockFile> filesToScan = [
       MockFile(filename: "System32.dll", features: [8.2, 1.0, 4.0, 7.8]),
       MockFile(filename: "Secret_Trojan.exe", features: [7.6, 1.0, 3.0, 6.9]),
