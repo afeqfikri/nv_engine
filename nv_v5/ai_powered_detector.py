@@ -128,89 +128,70 @@ RESPOND IN THE EXACT FORMAT SHOWN ABOVE. Start your response with "THREAT_LEVEL:
             return {'error': str(e), 'threat_level': 'UNKNOWN', 'ai_generated': 'UNKNOWN', 'explanation': f'Error during analysis: {str(e)}', 'response_time': time.time() - start_time if 'start_time' in locals() else 0}
 
     def parse_ollama_response(self, response_text):
-        result = {
-            'threat_level': 'UNKNOWN',
-            'malicious_indicators': [],
-            'ai_generated': 'UNKNOWN',
-            'explanation': '',
-            'recommendation': '',
-            'raw_response': response_text,
-            'explanation_is_fallback': False,
-            'parsing_complete': False
-        }
+    result = {
+        'threat_level': 'UNKNOWN',
+        'malicious_indicators': [],
+        'ai_generated': 'UNKNOWN',
+        'explanation': '',
+        'recommendation': '',
+        'raw_response': response_text,
+        'explanation_is_fallback': False,
+        'parsing_complete': False
+    }
 
-        if not response_text:
-            return result
-
-        lines = response_text.split('\n')
-        current_section_content = []
-        active_section_key = None
-
-        section_keywords = {
-            'THREAT_LEVEL:': 'threat_level',
-            'MALICIOUS_INDICATORS:': 'malicious_indicators',
-            'AI_GENERATED:': 'ai_generated',
-            'EXPLANATION:': 'explanation',
-            'RECOMMENDATION:': 'recommendation'
-        }
-        
-        processed_keywords = set()
-
-        for line_num, line in enumerate(lines):
-            line_stripped = line.strip()
-            matched_keyword = None
-
-            for kw, key_name in section_keywords.items():
-                if line_stripped.upper().startswith(kw.upper()): # Case-insensitive keyword matching
-                    matched_keyword = kw
-                    # Finalize previous section
-                    if active_section_key and current_section_content:
-                        content = ' '.join(current_section_content).strip()
-                        if active_section_key == 'malicious_indicators':
-                            result[active_section_key] = [i.strip() for i in content.split(',') if i.strip()]
-                        else:
-                            result[active_section_key] = content
-                        current_section_content = []
-                    
-                    active_section_key = key_name
-                    # Get content on the same line as the keyword
-                    content_on_keyword_line = line_stripped[len(kw):].strip()
-                    if content_on_keyword_line:
-                        current_section_content.append(content_on_keyword_line)
-                    
-                    processed_keywords.add(kw)
-                    break # Found a keyword for this line
-            
-            if not matched_keyword and active_section_key:
-                # This line is part of the currently active section
-                current_section_content.append(line_stripped)
-            elif not matched_keyword and not active_section_key and result['explanation'] == '' and line_stripped:
-                # Edge case: AI response is just a block of text without any headers. Treat as explanation.
-                # This is risky, only use if NO sections were found yet and explanation is empty.
-                # This part might be removed if it causes too many false positives for explanation.
-                # For now, this path is handled by _fallback_parse more explicitly.
-                pass
-
-
-        # Finalize the last active section
-        if active_section_key and current_section_content:
-            content = ' '.join(current_section_content).strip()
-            if active_section_key == 'malicious_indicators':
-                result[active_section_key] = [i.strip() for i in content.split(',') if i.strip()]
-            else:
-                result[active_section_key] = content
-        
-        # Uppercase threat level for consistency
-        if isinstance(result['threat_level'], str):
-            result['threat_level'] = result['threat_level'].upper()
-
-        # Check if primary parsing found the key sections
-        if result['explanation'] and result['threat_level'] != 'UNKNOWN':
-            result['parsing_complete'] = True
-        else: # If key fields like explanation are missing, try fallback
-            result = self._fallback_parse(response_text, result) # Pass the current result to be augmented
-
+    if not response_text:
         return result
+
+    lines = response_text.split('\n')
+    
+    # Parse each section
+    for i, line in enumerate(lines):
+        line = line.strip()
+        
+        # Parse THREAT_LEVEL
+        if line.startswith('THREAT_LEVEL:'):
+            result['threat_level'] = line.split(':', 1)[1].strip().upper()
+        
+        # Parse MALICIOUS_INDICATORS
+        elif line.startswith('MALICIOUS_INDICATORS:'):
+            indicators_text = line.split(':', 1)[1].strip()
+            if indicators_text:
+                result['malicious_indicators'] = [ind.strip() for ind in indicators_text.split(',')]
+        
+        # Parse AI_GENERATED
+        elif line.startswith('AI_GENERATED:'):
+            result['ai_generated'] = line.split(':', 1)[1].strip()
+        
+        # Parse EXPLANATION
+        elif line.startswith('EXPLANATION:'):
+            explanation_text = line.split(':', 1)[1].strip()
+            # Check if explanation continues on next lines
+            j = i + 1
+            while j < len(lines) and not any(lines[j].strip().startswith(kw) for kw in 
+                ['RECOMMENDATION:', 'THREAT_LEVEL:', 'MALICIOUS_INDICATORS:', 'AI_GENERATED:']):
+                explanation_text += ' ' + lines[j].strip()
+                j += 1
+            result['explanation'] = explanation_text.strip()
+        
+        # Parse RECOMMENDATION
+        elif line.startswith('RECOMMENDATION:'):
+            recommendation_text = line.split(':', 1)[1].strip()
+            # Check if recommendation continues on next lines
+            j = i + 1
+            while j < len(lines) and not any(lines[j].strip().startswith(kw) for kw in 
+                ['THREAT_LEVEL:', 'MALICIOUS_INDICATORS:', 'AI_GENERATED:', 'EXPLANATION:']):
+                recommendation_text += ' ' + lines[j].strip()
+                j += 1
+            result['recommendation'] = recommendation_text.strip()
+    
+    # Check if primary parsing found the key sections
+    if result['threat_level'] != 'UNKNOWN' and result['explanation']:
+        result['parsing_complete'] = True
+    else:
+        # If key fields are missing, try fallback parsing
+        result = self._fallback_parse(response_text, result)
+    
+    return result
 
     def _fallback_parse(self, text, result):
         """Fallback parsing, especially if EXPLANATION is missing or primary parsing was incomplete."""
