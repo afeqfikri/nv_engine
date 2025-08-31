@@ -83,7 +83,7 @@ class _AntivirusHomePageState extends State<AntivirusHomePage> {
     int nowh = now.hour;
     int nowmin = now.minute;
     
-    history.insertHistory(threats, nowm, nowd, nowh, nowmin);
+    await history.insertHistory(threats, nowm, nowd, nowh, nowmin);
 
     _scanHistory.add(newResult);
 
