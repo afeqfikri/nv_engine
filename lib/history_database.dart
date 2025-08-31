@@ -45,7 +45,7 @@ class HistoryDatabase {
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  clearhistory() async {
+  clearHistory() async {
     final db = await openMyDatabase();
     
     return await db.rawDelete("DELETE FROM history");

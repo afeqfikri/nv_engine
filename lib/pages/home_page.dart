@@ -313,7 +313,7 @@ class _AntivirusHomePageState extends State<AntivirusHomePage> {
                               setState(() {
                                 _scanHistory.clear();
                               });
-                              history.clearhistory();
+                              history.clearHistory();
                             },
                             icon: const Icon(Icons.delete, color: Colors.white),
                             label: const Text(
